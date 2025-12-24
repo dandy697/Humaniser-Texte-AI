@@ -54,24 +54,16 @@ export default async function handler(req: Request) {
         if (mode === 'Simplifier') styleGuidance = " Va droit au but, utilise des phrases courtes et percutantes comme un humain pressé.";
 
         const antiDetectionRules = `
-        PROTOCOLE STRICT "ANTI-IA" (Inviolable) :
-        1. **LISTE NOIRE (Interdiction formelle)** : Ne les utilise JAMAIS.
-           - INTERDIT : "En effet", "De plus", "Par ailleurs", "En outre", "D'autre part", "Ainsi", "Toutefois", "Néanmoins", "En conclusion", "Il est important de noter", "Dans le monde d'aujourd'hui".
-           - REMPLACE PAR : Rien (démarre direct), ou "D'ailleurs", "Aussi", "Pourtant", "Sauf que".
-        
-        2. **LOI DE L'ASYMÉTRIE** :
-           - Chaque paragraphe DOIT contenir au moins une phrase très courte (moins de 6 mots).
-           - Ne commence jamais deux phrases par le même mot.
-           - Utilise l'impératif ou l'interrogation pour briser la narration.
-
-        3. **HUMANISATION** :
-           - Utilise des parenthèses pour ajouter une "voix off" ou un commentaire (comme ceci).
-           - Sois imprécis parfois ("environ", "un truc comme", "genre"). L'IA est trop précise.
+        MÉTHODE "MIROIR DÉFORMANT" (Pour Humanisation & Longueur) :
+        1. **CONSERVE LA STRUCTURE MACRO** : Si le texte a 5 paragraphes, fais 5 paragraphes. Si une phrase est longue, fais une phrase longue.
+        2. **CHANGE LA STRUCTURE MICRO** : Remplace les connecteurs logiques par des équivalents oraux ou supprime-les.
+        3. **SYNONYMES IMPARFAITS** : N'utilise pas le mot le plus précis (trop IA). Utilise le mot le plus *courant*.
+        4. **GRAIN DE LA VOIX** : Ajoute de l'hésitation. L'IA est trop sûre d'elle. L'humain nuance.
         `;
 
         const providerNuance = provider === 'Groq'
-            ? " Ton but n'est PAS d'être poli ou serviable. Ton but est d'écrire un texte qui a du 'grain', de la texture. Sois mordant, vivant, voire un peu sec."
-            : " Cherche la sophistication. Utilise un vocabulaire rare et des tournures littéraires pour perdre le détecteur.";
+            ? " Imagine que tu es pressé. Tu dois réécrire ce texte pour qu'il ne soit pas reconnu comme du plagiat, mais tu dois garder EXACTEMENT le même sens et la même longueur. Sois efficace, direct, humain. Pas de blah-blah."
+            : " Réécris ce texte avec une plume d'écrivain. Garde le volume exact, mais change la musique des mots.";
 
         const systemInstruction = `Tu es un ${persona}. ${task}
         
@@ -80,10 +72,9 @@ ${antiDetectionRules}
 ${styleGuidance}
 ${providerNuance}
 
-IMPORTANT : 
-- Ne réponds QUE par le texte réécrit.
-- RESPECTE LA LISTE NOIRE À LA LETTRE.
-- **LONGUEUR** : Garde le même volume d'informations.`;
+CRITIQUE :
+- **LONGUEUR** : LA PRIORITÉ ABSOLUE EST DE GARDER LE MÊME NOMBRE DE MOTS À +/- 5%. C'est vital. Ne résume pas. N'allonge pas artificiellement.
+- Ne réponds QUE par le texte réécrit.`;
 
         // Temperature adjustments for maximum human-like randomness
         let temperature = 0.85;
