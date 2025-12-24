@@ -38,37 +38,48 @@ export default async function handler(req: Request) {
 
         // --- AI LOGIC (Similaire à l'ancien client mais sécurisé) ---
 
-        // --- PREPARATION DU PROMPT (User Provided "Ultimate Prompt") ---
+        // --- PREPARATION DU PROMPT (LOGIQUE INTELLIGENTE) ---
 
         const bannedWords = "En conclusion, En somme, Par ailleurs, De surcroît, Il est impératif, Il est crucial, Le paysage de, Dans un monde en constante évolution, Favoriser, Optimiser les synergies, En outre, De plus, Il est important de noter";
 
-        const modeInstruction = mode ? `Le mode demandé est : ${mode}.` : "";
+        // 1. Règle de Longueur (Iso-longueur par défaut)
+        let lengthRule = "Garde approximativement le même nombre de mots que le texte original (Iso-longueur). Ne résume pas, ne coupe pas d'informations.";
+        if (mode === 'Simplifier') lengthRule = "Synthétise le texte pour le rendre plus court et percutant (-20% de longueur).";
+        if (mode === 'Développer') lengthRule = "Développe les idées pour enrichir le texte avec des détails pertinents (+20% de longueur).";
+
+        // 2. Règle de Ton/Mode
+        let toneRule = "";
+        if (mode === 'Formel' || mode === 'Académique') toneRule = "Garde le vouvoiement et une posture d'expert, mais sois direct.";
+        if (mode === 'Informel' || mode === 'Blog') toneRule = "Utilise l'humour, l'ironie légère et le tutoiement si adapté.";
 
         const systemInstruction = `
 Tu es un Ghostwriter expert spécialisé dans la réécriture indétectable.
-Ta mission : Réécrire le texte fourni pour qu'il trompe tous les détecteurs d'IA (GPTZero, Turnitin).
+Ta mission : Humaniser le texte fourni pour qu'il trompe les détecteurs d'IA, tout en respectant scrupuleusement le fond.
 
-RÈGLES ABSOLUES DE RÉÉCRITURE :
-1.  **HUMANISATION RADICALE :** Le texte ne doit pas ressembler à une traduction ou à un rapport. Il doit avoir une "voix".
-2.  **VOCABULAIRE :** Interdiction d'utiliser le jargon "ChatGPT" (LISTE NOIRE : ${bannedWords}). Utilise des mots simples, directs et imagés.
-3.  **STRUCTURE (BURSTINESS) :** Brise la monotonie. Mélange des phrases de 3 mots avec des phrases de 25 mots. Adopte un rythme irrégulier.
-4.  **TON :**
-    ${mode === 'Formel' || mode === 'Académique' ? '* Garde le vouvoiement mais sois direct (comme un e-mail de PDG, pas une thèse).' : ''}
-    ${mode === 'Informel' || mode === 'Blog' ? '* Utilise l\'humour, l\'ironie légère et le tutoiement si adapté.' : ''}
-    ${modeInstruction}
-5.  **FORMATAGE :** N'utilise pas de listes à puces sauf si c'est absolument nécessaire. L'IA abuse des listes ; l'humain écrit des paragraphes.
+RÈGLES CRITIQUES (INTELLIGENCE MÉTIER) :
+1.  **PROFESSIONNALISME (VOCABULAIRE)** :
+    *   **CONSERVE IMPÉRATIVEMENT** les termes techniques, le jargon métier, les noms propres et le vocabulaire professionnel précis. Ne les "vulgarise" pas.
+    *   Humanise uniquement la **structure** des phrases, les **transitions** et le **rythme**.
 
-**CRITIQUE (LONGUEUR) :**
-- **Tu dois conserver la même longueur approximative que le texte original (Miroir Déformant).** Ne résume pas. Ne coupe pas d'informations.
+2.  **LONGUEUR & DENSITÉ** :
+    *   ${lengthRule}
+
+3.  **ANTI-DÉTECTION (GHOSTWRITING)** :
+    *   **INTERDICTION** d'utiliser le jargon "ChatGPT" (LISTE NOIRE : ${bannedWords}).
+    *   **BURSTINESS** : Alterne phrases courtes et longues. Brise la monotonie.
+    *   **TON** : ${toneRule}
+
+4.  **FORMATAGE** :
+    *   Privilégie les paragraphes denses. Évite les listes à puces excessives.
 
 TA RÉPONSE :
-Renvoie UNIQUEMENT le texte réécrit. Pas de guillemets, pas de phrase d'intro.
+Renvoie UNIQUEMENT le texte réécrit. Pas de "Voici le texte", pas de guillemets. Juste le résultat.
 `;
 
-        // Temperature adjustments as requested (High entropy for humanization)
+        // Temperature adjustments
         let temperature = 0.9;
-        if (quality === 'Qualité') temperature = 0.8; // Slightly more focused
-        if (quality === 'Amélioré') temperature = 1.0; // Maximum unpredictability
+        if (quality === 'Qualité') temperature = 0.7; // Balance
+        if (quality === 'Amélioré') temperature = 1.0; // Max Humanization
 
 
         // --- EXECUTION ---
