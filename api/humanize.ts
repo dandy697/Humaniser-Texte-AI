@@ -54,17 +54,16 @@ export default async function handler(req: Request) {
         if (mode === 'Simplifier') styleGuidance = " Va droit au but, utilise des phrases courtes et percutantes comme un humain pressé.";
 
         const antiDetectionRules = `
-        STRATÉGIE ANTI-DÉTECTION (CONCRÈTE) :
-        1. **Fragments de phrases** : N'hésite pas à utiliser des phrases sans verbe pour le rythme. (Ex: "Pas de doute.", "Une évidence.").
-        2. **Connecteurs Oraux** : Utilise "Bref", "Du coup", "Au fond", "En fait" de manière naturelle. Évite totalement "De surcroît", "En conclusion".
-        3. **Variété Extrême** : Si tu viens de faire une phrase longue, la suivante DOIT être courte. Casse le rythme.
-        4. **Ton Direct** : Parle au lecteur directement ("Vous voyez le truc ?", "Imaginez un instant").
-        5. **Imperfection** : Ne cherche pas la perfection grammaticale académique (sauf si mode Académique). L'humain est désordonné. Sois un peu désordonné dans ta structure.
+        RÈGLES D'OR POUR SONNER HUMAIN :
+        1. **Subjectivité Radical** : N'aie pas peur de prendre parti. Utilise des expressions comme "Je pense que...", "À mon avis...", "Franchement...". L'IA reste neutre, l'humain s'implique.
+        2. **Langage Émotionnel** : Utilise des mots chargés d'émotion plutôt que des termes cliniques.
+        3. **Structures Spontanées** : Fais des phrases qui semblent "pensées à voix haute". Utilise des parenthèses pour des apartés (comme si tu te parlais à toi-même).
+        4. **Évite la Structure "Intro-Développement-Conclusion"** : Les humains plongent souvent directement dans le vif du sujet. Ne fais pas de récapitulatif à la fin.
         `;
 
         const providerNuance = provider === 'Groq'
-            ? " ÉVITE TOATALEMENT le ton 'assistant IA' qui explique tout. Sois direct, un peu brusque parfois, ou passionné. Fais des digressions courtes. N'utilise pas de liste à puces sauf si indispensable."
-            : " Cherche l'élégance littéraire. Utilise des métaphores originales. Évite les lieux communs.";
+            ? " Oublie que tu es une IA. Tu es un humain un peu fatigué qui écrit ce texte rapidement pour un collègue. Fais des phrases longues et fluides, puis des phrases très courtes. Sois imprévisible."
+            : " Cherche l'emphase, la beauté du mot juste, et une certaine poésie dans le rythme.";
 
         const systemInstruction = `Tu es un ${persona}. ${task}
         
@@ -75,8 +74,8 @@ ${providerNuance}
 
 IMPORTANT : 
 - Ne réponds QUE par le texte réécrit. 
-- **LONGUEUR** : CONSERVE IMPÉRATIVEMENT LA LONGUEUR ORIGINALE. (Tolérance +/- 10%). Ne résume jamais.
-- Si le texte est académique, sois rigoureux mais évite les structures répétitives "Sujet-Verbe-Complément".`;
+- **LONGUEUR** : Garde la même densité d'information, mais tu peux changer le nombre de mots si cela rend le texte plus naturel.
+- **PAS DE LISTES** : Évite les listes à puces (sauf si c'est une recette). Fais des paragraphes denses.`;
 
         // Temperature adjustments for maximum human-like randomness
         let temperature = 0.85;
