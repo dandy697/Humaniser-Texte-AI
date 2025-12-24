@@ -97,7 +97,6 @@ const App: React.FC = () => {
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       setState({ isLoading: false, progress: 100, error: null, result: humanized });
 
-      // Update usage
       const newUsage = { ...usageMap, [currentModel]: currentUsage + 1 };
       setUsageMap(newUsage);
       localStorage.setItem(QUOTA_KEY, JSON.stringify({ usage: newUsage, lastUpdate: new Date().getTime() }));
@@ -106,6 +105,29 @@ const App: React.FC = () => {
       if (err.name === 'AbortError') return;
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       setState({ isLoading: false, progress: 0, error: err.message, result: null });
+    }
+  };
+
+  const handleExport = (format: 'docx' | 'txt') => {
+    if (!state.result) return;
+
+    if (format === 'txt') {
+      const blob = new Blob([state.result], { type: 'text/plain;charset=utf-8' });
+      saveAs(blob, `humanised_text_${new Date().getTime()}.txt`);
+    } else {
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: state.result.split('\n').map(line => new Paragraph({
+            children: [new TextRun({ text: line, font: "Calibri", size: 24 })],
+            spacing: { after: 200 }
+          }))
+        }]
+      });
+
+      Packer.toBlob(doc).then(blob => {
+        saveAs(blob, `humanised_text_${new Date().getTime()}.docx`);
+      });
     }
   };
 
@@ -150,7 +172,10 @@ const App: React.FC = () => {
               <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.2em]">Optimisé</h3>
               {state.result && (
                 <div className="flex gap-2">
-                  <button onClick={() => { navigator.clipboard.writeText(state.result!); setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); }} className="px-4 py-2 rounded-2xl text-[10px] font-black uppercase bg-white border border-slate-300 shadow-sm">{isCopied ? 'Copié !' : 'Copier'}</button>
+                  <button onClick={() => handleExport('docx')} className="px-4 py-2 rounded-2xl text-[10px] font-black uppercase bg-white border border-slate-300 shadow-sm hover:bg-slate-50 text-blue-700">DOCX</button>
+                  <button onClick={() => handleExport('txt')} className="px-4 py-2 rounded-2xl text-[10px] font-black uppercase bg-white border border-slate-300 shadow-sm hover:bg-slate-50 text-slate-700">TXT</button>
+                  <div className="w-px h-6 bg-slate-300 mx-1"></div>
+                  <button onClick={() => { navigator.clipboard.writeText(state.result!); setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); }} className="px-4 py-2 rounded-2xl text-[10px] font-black uppercase bg-indigo-600 text-white shadow-md hover:bg-indigo-700 transition-all">{isCopied ? 'Copié !' : 'Copier'}</button>
                 </div>
               )}
             </div>
