@@ -29,7 +29,7 @@ const App: React.FC = () => {
   const [level, setLevel] = useState<HumanizeLevel>('Pilote automatique');
   const [quality, setQuality] = useState<HumanizeQuality>('Équilibre');
   const [mode, setMode] = useState<HumanizeMode>('Général');
-  const [provider, setProvider] = useState<AIProvider>('Gemini');
+  const [provider, setProvider] = useState<AIProvider>('Groq');
 
   const [state, setState] = useState<GenerationState>({
     isLoading: false,
@@ -300,9 +300,9 @@ const App: React.FC = () => {
             <button
               onClick={handleHumanize}
               disabled={state.isLoading || !inputText.trim() || remainingGens <= 0}
-              className={`group relative min-w-[320px] h-[72px] rounded-[2.2rem] font-black text-white transition-all duration-500 overflow-hidden shadow-2xl transform active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed ${state.isLoading || !inputText.trim() || remainingGens <= 0 ? 'bg-slate-300' : (provider === 'Gemini' ? 'bg-slate-950 shadow-blue-400/30' : 'bg-slate-900 shadow-slate-400/30')}`}
+              className={`group relative min-w-[320px] h-[72px] rounded-[2.2rem] font-black text-white transition-all duration-500 overflow-hidden shadow-2xl transform active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed ${state.isLoading || !inputText.trim() || remainingGens <= 0 ? 'bg-slate-300' : (provider === 'Gemini' ? 'bg-slate-950 shadow-blue-400/30' : 'bg-slate-900 shadow-orange-400/30')}`}
             >
-              <div className={`absolute inset-0 transition-opacity duration-700 ${provider === 'Gemini' ? 'bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 opacity-0 group-hover:opacity-100' : 'bg-gradient-to-r from-slate-900 to-slate-700 opacity-0 group-hover:opacity-100'}`}></div>
+              <div className={`absolute inset-0 transition-opacity duration-700 ${provider === 'Gemini' ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100' : 'bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 opacity-0 group-hover:opacity-100'}`}></div>
               <div className="relative flex items-center justify-center gap-4">
                 <div className={`transition-all duration-700 ${state.isLoading ? 'animate-spin' : 'group-hover:rotate-[360deg]'}`}>
                   <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M13 10V3L4 14H11V21L20 10H13Z" /></svg>
