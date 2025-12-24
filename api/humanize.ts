@@ -40,31 +40,44 @@ export default async function handler(req: Request) {
 
         // System Instruction Construction
         let persona = "écrivain fantôme expert";
-        if (mode === 'Académique') persona = "chercheur universitaire de haut niveau";
-        if (mode === 'Blog') persona = "copywriter web influent et créatif";
-        if (mode === 'Formel') persona = "expert en communication corporate";
-        if (mode === 'Informel') persona = "blogueur lifestyle décontracté";
+        if (mode === 'Académique') persona = "chercheur universitaire";
+        if (mode === 'Blog') persona = "rédacteur web senior";
+        if (mode === 'Formel') persona = "consultant en communication";
+        if (mode === 'Informel') persona = "storyteller passionné";
 
         const task = level === 'Pilote automatique'
-            ? "Réécris intégralement le texte pour le rendre 100% humain, fluide et spontané."
-            : "Corrige légèrement le texte pour supprimer les patterns IA tout en restant très proche de l'original.";
+            ? "Réécris COMPLÈTEMENT ce texte. Ton but est de le rendre 100% INDÉTECTABLE par les détecteurs d'IA. Il doit passer pour une production humaine authentique."
+            : "Reformule ce texte pour supprimer les marqueurs IA tout en gardant le sens original.";
 
         let styleGuidance = "";
-        if (mode === 'Développer') styleGuidance = " Enrichis le contenu avec des détails pertinents sans perdre le sens.";
-        if (mode === 'Simplifier') styleGuidance = " Rends le message plus concis et percutant.";
+        if (mode === 'Développer') styleGuidance = " Enrichis le fond avec des nuances humaines, des opinions subtiles ou des illustrations concrètes.";
+        if (mode === 'Simplifier') styleGuidance = " Va droit au but, utilise des phrases courtes et percutantes comme un humain pressé.";
+
+        const antiDetectionRules = `
+        RÈGLES CRUCIALES POUR ÉVITER LA DÉTECTION IA :
+        1. **Perplexité & Burstiness** : Varie radicalement la longueur des phrases. Alterne entre des phrases très courtes (3-5 mots) et des phrases complexes. Brise le rythme monotone.
+        2. **Vocabulaire** : Évite absolument les mots de liaison typiques de l'IA (En outre, Par ailleurs, En conclusion, Il est important de noter). Utilise des transitions fluides ou pas de transition du tout.
+        3. **Imperfection Humaine** : N'aie pas peur d'utiliser des structures de phrase un peu moins "parfaites" ou scolaires. Utilise le langage actif plutôt que passif.
+        4. **Ton** : Sois engagé, subjectif si le contexte le permet. L'IA est neutre, l'humain a une voix.
+        `;
 
         const providerNuance = provider === 'Groq'
-            ? " Adopte un style direct, percutant et ultra-précis, typique d'une intelligence vive et instantanée."
-            : " Privilégie la fluidité narrative et une touche de créativité humaine naturelle.";
+            ? " Adopte un style très naturel, presque conversationnel. Ne sois pas robotique ou encyclopédique. Fais comme si tu parlais à quelqu'un."
+            : " Privilégie une prose riche, nuancée et élégante, avec une touche d'émotion ou de créativité.";
 
-        const systemInstruction = `Tu es un ${persona}. ${task}${styleGuidance}${providerNuance} 
-      Supprime le langage 'corporate' générique et les structures répétitives. 
-      Ne réponds QUE par le texte réécrit final. Ne fais pas de commentaires, ne mets pas de guillemets autour du texte sauf si l'original en avait.`;
+        const systemInstruction = `Tu es un ${persona}. ${task}
+        
+${antiDetectionRules}
 
-        // Temperature
-        let temperature = 0.7;
-        if (quality === 'Qualité') temperature = 0.5;
-        if (quality === 'Amélioré') temperature = 0.9;
+${styleGuidance}
+${providerNuance}
+
+IMPORTANT : Ne réponds QUE par le texte réécrit. Pas de guillemets, pas de "Voici le texte :", juste le résultat.`;
+
+        // Temperature (Higher is better for humanization/randomness)
+        let temperature = 0.85; // Default was 0.7
+        if (quality === 'Qualité') temperature = 0.7; // More focused but stll human
+        if (quality === 'Amélioré') temperature = 1.0; // Max creativity for undetected
 
 
         // --- EXECUTION ---
