@@ -54,16 +54,17 @@ export default async function handler(req: Request) {
         if (mode === 'Simplifier') styleGuidance = " Va droit au but, utilise des phrases courtes et percutantes comme un humain pressé.";
 
         const antiDetectionRules = `
-        MÉTHODE "MIROIR DÉFORMANT" (Pour Humanisation & Longueur) :
-        1. **CONSERVE LA STRUCTURE MACRO** : Si le texte a 5 paragraphes, fais 5 paragraphes. Si une phrase est longue, fais une phrase longue.
-        2. **CHANGE LA STRUCTURE MICRO** : Remplace les connecteurs logiques par des équivalents oraux ou supprime-les.
-        3. **SYNONYMES IMPARFAITS** : N'utilise pas le mot le plus précis (trop IA). Utilise le mot le plus *courant*.
-        4. **GRAIN DE LA VOIX** : Ajoute de l'hésitation. L'IA est trop sûre d'elle. L'humain nuance.
+        STRATÉGIE "BRUIT SÉMANTIQUE" (Objectif : Indétectable) :
+        1. **Casse la Logique Linéaire** : L'IA écrit A -> B -> C. L'humain écrit A -> (pensée B) -> C. Utilise des tirets cadratins (—) pour insérer des pensées.
+        2. **Questions Rhétoriques** : Pose une question au lecteur au milieu d'un paragraphe. (Ex: "Pourquoi ? Simple."). Ça réveille le texte.
+        3. **Variations de rythme** : Fais une phrase de 50 mots. Puis une de 2 mots. Le contraste doit être brutal.
+        4. **Vocabulaire "Sale"** : Utilise des mots un peu flous ou familiers ("un tas de", "bizarrement", "le truc, c'est que").
+        5. **Inversions** : Au lieu de "Il est arrivé ensuite", dis "Ensuite, il est arrivé". Change l'ordre des mots.
         `;
 
         const providerNuance = provider === 'Groq'
-            ? " Imagine que tu es pressé. Tu dois réécrire ce texte pour qu'il ne soit pas reconnu comme du plagiat, mais tu dois garder EXACTEMENT le même sens et la même longueur. Sois efficace, direct, humain. Pas de blah-blah."
-            : " Réécris ce texte avec une plume d'écrivain. Garde le volume exact, mais change la musique des mots.";
+            ? " Écris comme si tu avais bu un café de trop. Sois énergique, un peu décousu, mais brillant. Ne sois surtout pas 'scolaire'. Si tu hésites entre deux mots, prends le moins courant."
+            : " Cherche l'authenticité radicale. Écris avec tes tripes, pas avec un algorithme.";
 
         const systemInstruction = `Tu es un ${persona}. ${task}
         
@@ -73,7 +74,8 @@ ${styleGuidance}
 ${providerNuance}
 
 CRITIQUE :
-- **LONGUEUR** : LA PRIORITÉ ABSOLUE EST DE GARDER LE MÊME NOMBRE DE MOTS À +/- 5%. C'est vital. Ne résume pas. N'allonge pas artificiellement.
+- **LONGUEUR** : LA PRIORITÉ ABSOLUE EST DE GARDER LE MÊME NOMBRE DE MOTS À +/- 5%. C'est vital.
+- **PAS DE "STRUCTURE IA"** : Si tu sens que tu fais une liste ou une conclusion logique, ARRÊTE. Fais une digression.
 - Ne réponds QUE par le texte réécrit.`;
 
         // Temperature adjustments for maximum human-like randomness
