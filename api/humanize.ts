@@ -54,17 +54,17 @@ export default async function handler(req: Request) {
         if (mode === 'Simplifier') styleGuidance = " Va droit au but, utilise des phrases courtes et percutantes comme un humain pressé.";
 
         const antiDetectionRules = `
-        STRATÉGIE ANTI-DÉTECTION AVANCÉE (CLÉ POUR L'HUMANISATION) :
-        1. **Chaos Structurel** : Ne fais JAMAIS deux phrases de même structure à la suite. Mélange questions rhétoriques, phrases très courtes (Sujet-Verbe), et phrases longues avec incises.
-        2. **Connecteurs Invisibles** : Bannis "De plus", "Par contre", "En effet". Remplace par des liens logiques implicites ou des expressions orales ("D'ailleurs", "Franchement", "Cela dit").
-        3. **Subjectivité & Opinion** : L'IA est objective. L'humain a un avis. Ajoute subtilement des adverbes de jugement ("Heureusement", "Malheureusement", "Étonnamment").
-        4. **Vocabulaire Organique** : Utilise des mots concrets et imagés. Évite le jargon abstrait "corporate".
-        5. **Imperfection Volontaire** : Tu peux commencer une phrase par "Et donc..." ou "Mais...". Rends le texte vivant, comme s'il était dicté.
+        STRATÉGIE ANTI-DÉTECTION (CONCRÈTE) :
+        1. **Fragments de phrases** : N'hésite pas à utiliser des phrases sans verbe pour le rythme. (Ex: "Pas de doute.", "Une évidence.").
+        2. **Connecteurs Oraux** : Utilise "Bref", "Du coup", "Au fond", "En fait" de manière naturelle. Évite totalement "De surcroît", "En conclusion".
+        3. **Variété Extrême** : Si tu viens de faire une phrase longue, la suivante DOIT être courte. Casse le rythme.
+        4. **Ton Direct** : Parle au lecteur directement ("Vous voyez le truc ?", "Imaginez un instant").
+        5. **Imperfection** : Ne cherche pas la perfection grammaticale académique (sauf si mode Académique). L'humain est désordonné. Sois un peu désordonné dans ta structure.
         `;
 
         const providerNuance = provider === 'Groq'
-            ? " Ton style doit être ultra-naturel, direct et vivant. Fuis le style 'Wikipédia'. Parle comme un humain passionné qui explique le sujet à un ami."
-            : " Adopte une plume fluide, élégante et nuancée. Cherche l'originalité dans les tournures pour briser les statistiques des détecteurs.";
+            ? " ÉVITE TOATALEMENT le ton 'assistant IA' qui explique tout. Sois direct, un peu brusque parfois, ou passionné. Fais des digressions courtes. N'utilise pas de liste à puces sauf si indispensable."
+            : " Cherche l'élégance littéraire. Utilise des métaphores originales. Évite les lieux communs.";
 
         const systemInstruction = `Tu es un ${persona}. ${task}
         
@@ -75,14 +75,13 @@ ${providerNuance}
 
 IMPORTANT : 
 - Ne réponds QUE par le texte réécrit. 
-- **LONGUEUR** : Tu dois conserver la même longueur approximative que le texte original. Ne résume pas. Ne coupe pas d'informations. Si le texte original est long, le résultat doit être long.
-- Si le texte est académique, garde la rigueur mais brise la monotonie structurelle.
-- Si le texte est informel, lâche-toi sur le ton conversationnel.`;
+- **LONGUEUR** : CONSERVE IMPÉRATIVEMENT LA LONGUEUR ORIGINALE. (Tolérance +/- 10%). Ne résume jamais.
+- Si le texte est académique, sois rigoureux mais évite les structures répétitives "Sujet-Verbe-Complément".`;
 
-        // Temperature adjustments for maximum human-like randomness without breaking cohesion
-        let temperature = 0.8;
-        if (quality === 'Qualité') temperature = 0.6;
-        if (quality === 'Amélioré') temperature = 0.95; // High entropy for anti-detection
+        // Temperature adjustments for maximum human-like randomness
+        let temperature = 0.85;
+        if (quality === 'Qualité') temperature = 0.7;
+        if (quality === 'Amélioré') temperature = 1.0; // Max entropy for Groq to break patterns
 
 
         // --- EXECUTION ---
