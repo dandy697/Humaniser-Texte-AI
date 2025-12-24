@@ -38,50 +38,37 @@ export default async function handler(req: Request) {
 
         // --- AI LOGIC (Similaire à l'ancien client mais sécurisé) ---
 
-        // System Instruction Construction
-        let persona = "écrivain fantôme expert";
-        if (mode === 'Académique') persona = "chercheur universitaire";
-        if (mode === 'Blog') persona = "rédacteur web senior";
-        if (mode === 'Formel') persona = "consultant en communication";
-        if (mode === 'Informel') persona = "storyteller passionné";
+        // --- PREPARATION DU PROMPT (User Provided "Ultimate Prompt") ---
 
-        const task = level === 'Pilote automatique'
-            ? "Réécris COMPLÈTEMENT ce texte. Ton but est de le rendre 100% INDÉTECTABLE par les détecteurs d'IA. Il doit passer pour une production humaine authentique."
-            : "Reformule ce texte pour supprimer les marqueurs IA tout en gardant le sens original.";
+        const bannedWords = "En conclusion, En somme, Par ailleurs, De surcroît, Il est impératif, Il est crucial, Le paysage de, Dans un monde en constante évolution, Favoriser, Optimiser les synergies, En outre, De plus, Il est important de noter";
 
-        let styleGuidance = "";
-        if (mode === 'Développer') styleGuidance = " Enrichis le fond avec des nuances humaines, des opinions subtiles ou des illustrations concrètes.";
-        if (mode === 'Simplifier') styleGuidance = " Va droit au but, utilise des phrases courtes et percutantes comme un humain pressé.";
+        const modeInstruction = mode ? `Le mode demandé est : ${mode}.` : "";
 
-        const antiDetectionRules = `
-        STRATÉGIE "BRUIT SÉMANTIQUE" (Objectif : Indétectable) :
-        1. **Casse la Logique Linéaire** : L'IA écrit A -> B -> C. L'humain écrit A -> (pensée B) -> C. Utilise des tirets cadratins (—) pour insérer des pensées.
-        2. **Questions Rhétoriques** : Pose une question au lecteur au milieu d'un paragraphe. (Ex: "Pourquoi ? Simple."). Ça réveille le texte.
-        3. **Variations de rythme** : Fais une phrase de 50 mots. Puis une de 2 mots. Le contraste doit être brutal.
-        4. **Vocabulaire "Sale"** : Utilise des mots un peu flous ou familiers ("un tas de", "bizarrement", "le truc, c'est que").
-        5. **Inversions** : Au lieu de "Il est arrivé ensuite", dis "Ensuite, il est arrivé". Change l'ordre des mots.
-        `;
+        const systemInstruction = `
+Tu es un Ghostwriter expert spécialisé dans la réécriture indétectable.
+Ta mission : Réécrire le texte fourni pour qu'il trompe tous les détecteurs d'IA (GPTZero, Turnitin).
 
-        const providerNuance = provider === 'Groq'
-            ? " Écris comme si tu avais bu un café de trop. Sois énergique, un peu décousu, mais brillant. Ne sois surtout pas 'scolaire'. Si tu hésites entre deux mots, prends le moins courant."
-            : " Cherche l'authenticité radicale. Écris avec tes tripes, pas avec un algorithme.";
+RÈGLES ABSOLUES DE RÉÉCRITURE :
+1.  **HUMANISATION RADICALE :** Le texte ne doit pas ressembler à une traduction ou à un rapport. Il doit avoir une "voix".
+2.  **VOCABULAIRE :** Interdiction d'utiliser le jargon "ChatGPT" (LISTE NOIRE : ${bannedWords}). Utilise des mots simples, directs et imagés.
+3.  **STRUCTURE (BURSTINESS) :** Brise la monotonie. Mélange des phrases de 3 mots avec des phrases de 25 mots. Adopte un rythme irrégulier.
+4.  **TON :**
+    ${mode === 'Formel' || mode === 'Académique' ? '* Garde le vouvoiement mais sois direct (comme un e-mail de PDG, pas une thèse).' : ''}
+    ${mode === 'Informel' || mode === 'Blog' ? '* Utilise l\'humour, l\'ironie légère et le tutoiement si adapté.' : ''}
+    ${modeInstruction}
+5.  **FORMATAGE :** N'utilise pas de listes à puces sauf si c'est absolument nécessaire. L'IA abuse des listes ; l'humain écrit des paragraphes.
 
-        const systemInstruction = `Tu es un ${persona}. ${task}
-        
-${antiDetectionRules}
+**CRITIQUE (LONGUEUR) :**
+- **Tu dois conserver la même longueur approximative que le texte original (Miroir Déformant).** Ne résume pas. Ne coupe pas d'informations.
 
-${styleGuidance}
-${providerNuance}
+TA RÉPONSE :
+Renvoie UNIQUEMENT le texte réécrit. Pas de guillemets, pas de phrase d'intro.
+`;
 
-CRITIQUE :
-- **LONGUEUR** : LA PRIORITÉ ABSOLUE EST DE GARDER LE MÊME NOMBRE DE MOTS À +/- 5%. C'est vital.
-- **PAS DE "STRUCTURE IA"** : Si tu sens que tu fais une liste ou une conclusion logique, ARRÊTE. Fais une digression.
-- Ne réponds QUE par le texte réécrit.`;
-
-        // Temperature adjustments for maximum human-like randomness
-        let temperature = 0.85;
-        if (quality === 'Qualité') temperature = 0.7;
-        if (quality === 'Amélioré') temperature = 1.0; // Max entropy for Groq to break patterns
+        // Temperature adjustments as requested (High entropy for humanization)
+        let temperature = 0.9;
+        if (quality === 'Qualité') temperature = 0.8; // Slightly more focused
+        if (quality === 'Amélioré') temperature = 1.0; // Maximum unpredictability
 
 
         // --- EXECUTION ---
