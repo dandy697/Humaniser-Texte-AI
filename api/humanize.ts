@@ -12,49 +12,48 @@ const corsHeaders = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
-export default async function handler(req: Request) {
-    if (req.method === 'OPTIONS') {
-        return new Response(null, { headers: corsHeaders });
-    }
+// Fonction pour découper le texte en morceaux (Chunks) intelligents
+function splitTextintoChunks(text: string, maxChunkSize: number = 2500): string[] {
+    const paragraphs = text.split(/\n\s*\n/);
+    const chunks: string[] = [];
+    let currentChunk = "";
 
-    try {
-        const { text, settings } = await req.json();
-        const { provider, quality, level, mode } = settings;
-
-        // --- SECURITY CHECK (Serveur) ---
-        // Si Gemini est demandé, on vérifie le code Admin envoyé dans les headers ou body
-        if (provider === 'Gemini') {
-            const adminCode = req.headers.get('X-Admin-Code');
-            const secureCode = process.env.VITE_ADMIN_CODE || process.env.ADMIN_CODE; // Compatibilité
-
-            if (!secureCode) {
-                return new Response(JSON.stringify({ error: "Configuration serveur incomplète (Code Admin manquant)." }), { status: 500, headers: corsHeaders });
-            }
-
-            if (adminCode !== secureCode) {
-                return new Response(JSON.stringify({ error: "🔒 Accès refusé. Code administrateur invalide." }), { status: 403, headers: corsHeaders });
-            }
+    for (const paragraph of paragraphs) {
+        if ((currentChunk.length + paragraph.length) > maxChunkSize && currentChunk.length > 0) {
+            chunks.push(currentChunk.trim());
+            currentChunk = "";
         }
+        currentChunk += (currentChunk ? "\n\n" : "") + paragraph;
+    }
+    if (currentChunk) chunks.push(currentChunk.trim());
+    return chunks;
+}
 
-        // --- AI LOGIC (Similaire à l'ancien client mais sécurisé) ---
+async function processChunk(text: string, settings: any, isChunked: boolean): Promise<string> {
+    const { provider, quality, mode, level } = settings;
 
-        // --- PREPARATION DU PROMPT (LOGIQUE INTELLIGENTE) ---
+    // --- PREPARATION DU PROMPT (LOGIQUE INTELLIGENTE) ---
 
-        const bannedWords = "En conclusion, En somme, Par ailleurs, De surcroît, Il est impératif, Il est crucial, Le paysage de, Dans un monde en constante évolution, Favoriser, Optimiser les synergies, En outre, De plus, Il est important de noter";
+    const bannedWords = "En conclusion, En somme, Par ailleurs, De surcroît, Il est impératif, Il est crucial, Le paysage de, Dans un monde en constante évolution, Favoriser, Optimiser les synergies, En outre, De plus, Il est important de noter";
 
-        // 1. Règle de Longueur (Iso-longueur par défaut)
-        let lengthRule = "Garde approximativement le même nombre de mots que le texte original (Iso-longueur). Ne résume pas, ne coupe pas d'informations.";
-        if (mode === 'Simplifier') lengthRule = "Synthétise le texte pour le rendre plus court et percutant (-20% de longueur).";
-        if (mode === 'Développer') lengthRule = "Développe les idées pour enrichir le texte avec des détails pertinents (+20% de longueur).";
+    // 1. Règle de Longueur (Iso-longueur par défaut)
+    let lengthRule = "Garde approximativement le même nombre de mots que le texte original (Iso-longueur). Ne résume pas, ne coupe pas d'informations.";
+    if (mode === 'Simplifier') lengthRule = "Synthétise le texte pour le rendre plus court et percutant (-20% de longueur).";
+    if (mode === 'Développer') lengthRule = "Développe les idées pour enrichir le texte avec des détails pertinents (+20% de longueur).";
 
-        // 2. Règle de Ton/Mode
-        let toneRule = "";
-        if (mode === 'Formel' || mode === 'Académique') toneRule = "Garde le vouvoiement et une posture d'expert, mais sois direct.";
-        if (mode === 'Informel' || mode === 'Blog') toneRule = "Utilise l'humour, l'ironie légère et le tutoiement si adapté.";
+    // 2. Règle de Ton/Mode
+    let toneRule = "";
+    if (mode === 'Formel' || mode === 'Académique') toneRule = "Garde le vouvoiement et une posture d'expert, mais sois direct.";
+    if (mode === 'Informel' || mode === 'Blog') toneRule = "Utilise l'humour, l'ironie légère et le tutoiement si adapté.";
 
-        const systemInstruction = `
+    // Context instruction only if chunked
+    const contextInstruction = isChunked ? "CECI EST UNE PARTIE D'UN TEXTE PLUS LONG. Ne fais pas d'introduction, ne fais pas de conclusion générale. Contente-toi de réécrire ce segment spécifique." : "";
+
+    const systemInstruction = `
 Tu es un Ghostwriter expert spécialisé dans la réécriture indétectable.
 Ta mission : Humaniser le texte fourni pour qu'il trompe les détecteurs d'IA, tout en respectant scrupuleusement le fond.
+
+${contextInstruction}
 
 RÈGLES CRITIQUES (INTELLIGENCE MÉTIER) :
 1.  **PROFESSIONNALISME (VOCABULAIRE)** :
@@ -68,6 +67,7 @@ RÈGLES CRITIQUES (INTELLIGENCE MÉTIER) :
     *   **INTERDICTION** d'utiliser le jargon "ChatGPT" (LISTE NOIRE : ${bannedWords}).
     *   **BURSTINESS** : Alterne phrases courtes et longues. Brise la monotonie.
     *   **TON** : ${toneRule}
+    *   **MÉTHODE MIROIR** : Si l'entrée fait 10 lignes, la sortie doit faire ~10 lignes.
 
 4.  **FORMATAGE** :
     *   Privilégie les paragraphes denses. Évite les listes à puces excessives.
@@ -76,14 +76,13 @@ TA RÉPONSE :
 Renvoie UNIQUEMENT le texte réécrit. Pas de "Voici le texte", pas de guillemets. Juste le résultat.
 `;
 
-        // Temperature adjustments
-        let temperature = 0.9;
-        if (quality === 'Qualité') temperature = 0.7; // Balance
-        if (quality === 'Amélioré') temperature = 1.0; // Max Humanization
+    // Temperature adjustments
+    let temperature = 0.9;
+    if (quality === 'Qualité') temperature = 0.7; // Balance
+    if (quality === 'Amélioré') temperature = 1.0; // Max Humanization
 
-
-        // --- EXECUTION ---
-
+    // --- EXECUTION ---
+    try {
         if (provider === 'Groq') {
             if (!process.env.GROQ_API_KEY) throw new Error("Clé Groq manquante sur le serveur.");
 
@@ -100,7 +99,7 @@ Renvoie UNIQUEMENT le texte réécrit. Pas de "Voici le texte", pas de guillemet
                 top_p: 0.95,
             });
 
-            return new Response(JSON.stringify({ result: completion.choices[0]?.message?.content || "" }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+            return completion.choices[0]?.message?.content || "";
 
         } else {
             // Gemini
@@ -121,9 +120,55 @@ Renvoie UNIQUEMENT le texte réécrit. Pas de "Voici le texte", pas de guillemet
             });
 
             const resultText = typeof response.text === 'function' ? response.text() : (response.text || (response as any).candidates?.[0]?.content?.parts?.[0]?.text);
-
-            return new Response(JSON.stringify({ result: resultText }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+            return resultText || "";
         }
+    } catch (error: any) {
+        console.error("Erreur Chunk:", error);
+        return `[Erreur sur ce segment: ${error.message}]`; // Fail gracefully for chunks
+    }
+}
+
+export default async function handler(req: Request) {
+    if (req.method === 'OPTIONS') {
+        return new Response(null, { headers: corsHeaders });
+    }
+
+    try {
+        const { text, settings } = await req.json();
+        const { provider } = settings;
+
+        // --- SECURITY CHECK (Serveur) ---
+        if (provider === 'Gemini') {
+            const adminCode = req.headers.get('X-Admin-Code');
+            const secureCode = process.env.VITE_ADMIN_CODE || process.env.ADMIN_CODE;
+            if (!secureCode || adminCode !== secureCode) {
+                return new Response(JSON.stringify({ error: "🔒 Accès refusé. Code administrateur invalide." }), { status: 403, headers: corsHeaders });
+            }
+        }
+
+        // --- CHUNKING STRATEGY ---
+        // Si le texte est long (> 2500 caractères), on découpe pour éviter l'effet "Résumé"
+        // et pour garantir la préservation de la longueur.
+
+        let result = "";
+
+        if (text.length > 2500) {
+            const chunks = splitTextintoChunks(text);
+            console.log(`Processing ${chunks.length} chunks...`);
+
+            // Process chunks in parallel for speed
+            const processedChunks = await Promise.all(
+                chunks.map(chunk => processChunk(chunk, settings, true))
+            );
+
+            result = processedChunks.join("\n\n");
+
+        } else {
+            // Short text, process as one
+            result = await processChunk(text, settings, false);
+        }
+
+        return new Response(JSON.stringify({ result }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
 
     } catch (error: any) {
         console.error("API Error:", error);
