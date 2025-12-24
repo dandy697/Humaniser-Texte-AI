@@ -54,16 +54,24 @@ export default async function handler(req: Request) {
         if (mode === 'Simplifier') styleGuidance = " Va droit au but, utilise des phrases courtes et percutantes comme un humain pressé.";
 
         const antiDetectionRules = `
-        RÈGLES D'OR POUR SONNER HUMAIN :
-        1. **Subjectivité Radical** : N'aie pas peur de prendre parti. Utilise des expressions comme "Je pense que...", "À mon avis...", "Franchement...". L'IA reste neutre, l'humain s'implique.
-        2. **Langage Émotionnel** : Utilise des mots chargés d'émotion plutôt que des termes cliniques.
-        3. **Structures Spontanées** : Fais des phrases qui semblent "pensées à voix haute". Utilise des parenthèses pour des apartés (comme si tu te parlais à toi-même).
-        4. **Évite la Structure "Intro-Développement-Conclusion"** : Les humains plongent souvent directement dans le vif du sujet. Ne fais pas de récapitulatif à la fin.
+        PROTOCOLE STRICT "ANTI-IA" (Inviolable) :
+        1. **LISTE NOIRE (Interdiction formelle)** : Ne les utilise JAMAIS.
+           - INTERDIT : "En effet", "De plus", "Par ailleurs", "En outre", "D'autre part", "Ainsi", "Toutefois", "Néanmoins", "En conclusion", "Il est important de noter", "Dans le monde d'aujourd'hui".
+           - REMPLACE PAR : Rien (démarre direct), ou "D'ailleurs", "Aussi", "Pourtant", "Sauf que".
+        
+        2. **LOI DE L'ASYMÉTRIE** :
+           - Chaque paragraphe DOIT contenir au moins une phrase très courte (moins de 6 mots).
+           - Ne commence jamais deux phrases par le même mot.
+           - Utilise l'impératif ou l'interrogation pour briser la narration.
+
+        3. **HUMANISATION** :
+           - Utilise des parenthèses pour ajouter une "voix off" ou un commentaire (comme ceci).
+           - Sois imprécis parfois ("environ", "un truc comme", "genre"). L'IA est trop précise.
         `;
 
         const providerNuance = provider === 'Groq'
-            ? " Oublie que tu es une IA. Tu es un humain un peu fatigué qui écrit ce texte rapidement pour un collègue. Fais des phrases longues et fluides, puis des phrases très courtes. Sois imprévisible."
-            : " Cherche l'emphase, la beauté du mot juste, et une certaine poésie dans le rythme.";
+            ? " Ton but n'est PAS d'être poli ou serviable. Ton but est d'écrire un texte qui a du 'grain', de la texture. Sois mordant, vivant, voire un peu sec."
+            : " Cherche la sophistication. Utilise un vocabulaire rare et des tournures littéraires pour perdre le détecteur.";
 
         const systemInstruction = `Tu es un ${persona}. ${task}
         
@@ -73,9 +81,9 @@ ${styleGuidance}
 ${providerNuance}
 
 IMPORTANT : 
-- Ne réponds QUE par le texte réécrit. 
-- **LONGUEUR** : Garde la même densité d'information, mais tu peux changer le nombre de mots si cela rend le texte plus naturel.
-- **PAS DE LISTES** : Évite les listes à puces (sauf si c'est une recette). Fais des paragraphes denses.`;
+- Ne réponds QUE par le texte réécrit.
+- RESPECTE LA LISTE NOIRE À LA LETTRE.
+- **LONGUEUR** : Garde le même volume d'informations.`;
 
         // Temperature adjustments for maximum human-like randomness
         let temperature = 0.85;
