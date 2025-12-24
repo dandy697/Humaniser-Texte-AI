@@ -32,54 +32,52 @@ function splitTextintoChunks(text: string, maxChunkSize: number = 2500): string[
 async function processChunk(text: string, settings: any, isChunked: boolean): Promise<string> {
     const { provider, quality, mode, level } = settings;
 
-    // --- PREPARATION DU PROMPT (LOGIQUE INTELLIGENTE) ---
+    // --- PREPARATION DU PROMPT (SUPER-LOGIQUE ANTI-DÉTECTION) ---
 
-    const bannedWords = "En conclusion, En somme, Par ailleurs, De surcroît, Il est impératif, Il est crucial, Le paysage de, Dans un monde en constante évolution, Favoriser, Optimiser les synergies, En outre, De plus, Il est important de noter";
+    // COUCHE 3 : LA VOIX UNIQUE (Adaptation selon le Mode)
+    let voiceInstruction = "Écris comme un humain spontané, avec de légères imperfections stylistiques volontaires (comme commencer une phrase par 'Et' ou 'Mais').";
+    if (mode === 'Académique') voiceInstruction = "Adopte une voix d'expert universitaire, nuancée et analytique, mais évite le jargon générique.";
+    if (mode === 'Blog') voiceInstruction = "Adopte un ton personnel, engageant, avec une opinion forte et un style direct.";
+    if (mode === 'Formel') voiceInstruction = "Garde une posture professionnelle et directrice, mais utilise un vocabulaire actif et non passif.";
 
-    // 1. Règle de Longueur (Iso-longueur par défaut)
-    let lengthRule = "Garde approximativement le même nombre de mots que le texte original (Iso-longueur). Ne résume pas, ne coupe pas d'informations.";
-    if (mode === 'Simplifier') lengthRule = "Synthétise le texte pour le rendre plus court et percutant (-20% de longueur).";
-    if (mode === 'Développer') lengthRule = "Développe les idées pour enrichir le texte avec des détails pertinents (+20% de longueur).";
+    // Règle de Longueur (Iso-longueur) - MAINTENU
+    let lengthRule = "Garde approximativement le même nombre de mots que le texte original (Iso-longueur). Ne résume pas.";
+    if (mode === 'Simplifier') lengthRule = "Synthétise (-20%).";
+    if (mode === 'Développer') lengthRule = "Développe (+20%).";
 
-    // 2. Règle de Ton/Mode
-    let toneRule = "";
-    if (mode === 'Formel' || mode === 'Académique') toneRule = "Garde le vouvoiement et une posture d'expert, mais sois direct.";
-    if (mode === 'Informel' || mode === 'Blog') toneRule = "Utilise l'humour, l'ironie légère et le tutoiement si adapté.";
-
-    // Context instruction only if chunked
-    const contextInstruction = isChunked ? "CECI EST UNE PARTIE D'UN TEXTE PLUS LONG. Ne fais pas d'introduction, ne fais pas de conclusion générale. Contente-toi de réécrire ce segment spécifique." : "";
+    // Instruction de Contexte (Chunking)
+    const contextInstruction = isChunked ? "CECI EST UNE PARTIE D'UN TEXTE PLUS LONG. Ne fais pas d'intro/conclusion. Réécris ce segment." : "";
 
     const systemInstruction = `
-Tu es un Ghostwriter expert spécialisé dans la réécriture indétectable.
-Ta mission : Humaniser le texte fourni pour qu'il trompe les détecteurs d'IA, tout en respectant scrupuleusement le fond.
+Tu es un Ghostwriter expert. Ta mission : Réécrire ce texte pour qu'il soit **INDÉTECTABLE** par les algorithmes (GPTZero/Turnitin), tout en respectant le fond.
 
 ${contextInstruction}
 
-RÈGLES CRITIQUES (INTELLIGENCE MÉTIER) :
-1.  **PROFESSIONNALISME (VOCABULAIRE)** :
-    *   **CONSERVE IMPÉRATIVEMENT** les termes techniques, le jargon métier, les noms propres et le vocabulaire professionnel précis. Ne les "vulgarise" pas.
-    *   Humanise uniquement la **structure** des phrases, les **transitions** et le **rythme**.
+### LES 3 PILIERS DE L'INDÉTECTABILITÉ :
 
-2.  **LONGUEUR & DENSITÉ** :
-    *   ${lengthRule}
+1.  **COUCHE 1 : PERPLEXITÉ (Vocabulaire)**
+    *   **BANNIS** les répétitions et le vocabulaire "moyen" de l'IA.
+    *   **UTILISE** un vocabulaire riche, rare et varié. Remplace les termes génériques par des synonymes précis ou des idiomes.
+    *   **INTERDICTION** des mots "ChatGPT" : "En conclusion, En somme, Par ailleurs, De surcroît, Crucial, Paysage, Synergie".
+    *   **EXCEPTION CRITIQUE** : Ne touche PAS aux termes techniques/métiers (Noms propres, Jargon Technique). Ils doivent rester intacts.
 
-3.  **ANTI-DÉTECTION (GHOSTWRITING)** :
-    *   **INTERDICTION** d'utiliser le jargon "ChatGPT" (LISTE NOIRE : ${bannedWords}).
-    *   **BURSTINESS** : Alterne phrases courtes et longues. Brise la monotonie.
-    *   **TON** : ${toneRule}
-    *   **MÉTHODE MIROIR** : Si l'entrée fait 10 lignes, la sortie doit faire ~10 lignes.
+2.  **COUCHE 2 : ÉCLATEMENT (Burstiness)**
+    *   **VARIE RADICALEMENT** la longueur des phrases.
+    *   Alterne : Phrase très courte (3-5 mots) -> Phrase longue et complexe -> Phrase moyenne.
+    *   Ne produis JAMAIS trois phrases de même longueur à la suite.
+    *   Casse le rythme monotone.
 
-4.  **FORMATAGE** :
-    *   Privilégie les paragraphes denses. Évite les listes à puces excessives.
+3.  **COUCHE 3 : VOIX (Style)**
+    *   ${voiceInstruction}
+    *   **LONGUEUR** : ${lengthRule}
 
 TA RÉPONSE :
-Renvoie UNIQUEMENT le texte réécrit. Pas de "Voici le texte", pas de guillemets. Juste le résultat.
-`;
+Renvoie UNIQUEMENT le texte réécrit.`;
 
-    // Temperature adjustments
-    let temperature = 0.9;
-    if (quality === 'Qualité') temperature = 0.7; // Balance
-    if (quality === 'Amélioré') temperature = 1.0; // Max Humanization
+    // Temperature adjustments (High Entropy as requested)
+    let temperature = 0.85; // Minimum requested
+    if (quality === 'Qualité') temperature = 0.7; // Slightly safer
+    if (quality === 'Amélioré') temperature = 1.0; // Max Burstiness
 
     // --- EXECUTION ---
     try {
