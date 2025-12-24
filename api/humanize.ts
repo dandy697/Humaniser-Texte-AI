@@ -54,16 +54,17 @@ export default async function handler(req: Request) {
         if (mode === 'Simplifier') styleGuidance = " Va droit au but, utilise des phrases courtes et percutantes comme un humain pressé.";
 
         const antiDetectionRules = `
-        RÈGLES CRUCIALES POUR ÉVITER LA DÉTECTION IA :
-        1. **Perplexité & Burstiness** : Varie radicalement la longueur des phrases. Alterne entre des phrases très courtes (3-5 mots) et des phrases complexes. Brise le rythme monotone.
-        2. **Vocabulaire** : Évite absolument les mots de liaison typiques de l'IA (En outre, Par ailleurs, En conclusion, Il est important de noter). Utilise des transitions fluides ou pas de transition du tout.
-        3. **Imperfection Humaine** : N'aie pas peur d'utiliser des structures de phrase un peu moins "parfaites" ou scolaires. Utilise le langage actif plutôt que passif.
-        4. **Ton** : Sois engagé, subjectif si le contexte le permet. L'IA est neutre, l'humain a une voix.
+        STRATÉGIE ANTI-DÉTECTION AVANCÉE (CLÉ POUR L'HUMANISATION) :
+        1. **Chaos Structurel** : Ne fais JAMAIS deux phrases de même structure à la suite. Mélange questions rhétoriques, phrases très courtes (Sujet-Verbe), et phrases longues avec incises.
+        2. **Connecteurs Invisibles** : Bannis "De plus", "Par contre", "En effet". Remplace par des liens logiques implicites ou des expressions orales ("D'ailleurs", "Franchement", "Cela dit").
+        3. **Subjectivité & Opinion** : L'IA est objective. L'humain a un avis. Ajoute subtilement des adverbes de jugement ("Heureusement", "Malheureusement", "Étonnamment").
+        4. **Vocabulaire Organique** : Utilise des mots concrets et imagés. Évite le jargon abstrait "corporate".
+        5. **Imperfection Volontaire** : Tu peux commencer une phrase par "Et donc..." ou "Mais...". Rends le texte vivant, comme s'il était dicté.
         `;
 
         const providerNuance = provider === 'Groq'
-            ? " Adopte un style très naturel, presque conversationnel. Ne sois pas robotique ou encyclopédique. Fais comme si tu parlais à quelqu'un."
-            : " Privilégie une prose riche, nuancée et élégante, avec une touche d'émotion ou de créativité.";
+            ? " Ton style doit être ultra-naturel, direct et vivant. Fuis le style 'Wikipédia'. Parle comme un humain passionné qui explique le sujet à un ami."
+            : " Adopte une plume fluide, élégante et nuancée. Cherche l'originalité dans les tournures pour briser les statistiques des détecteurs.";
 
         const systemInstruction = `Tu es un ${persona}. ${task}
         
@@ -72,12 +73,16 @@ ${antiDetectionRules}
 ${styleGuidance}
 ${providerNuance}
 
-IMPORTANT : Ne réponds QUE par le texte réécrit. Pas de guillemets, pas de "Voici le texte :", juste le résultat.`;
+IMPORTANT : 
+- Ne réponds QUE par le texte réécrit. 
+- **LONGUEUR** : Tu dois conserver la même longueur approximative que le texte original. Ne résume pas. Ne coupe pas d'informations. Si le texte original est long, le résultat doit être long.
+- Si le texte est académique, garde la rigueur mais brise la monotonie structurelle.
+- Si le texte est informel, lâche-toi sur le ton conversationnel.`;
 
-        // Temperature (Higher is better for humanization/randomness)
-        let temperature = 0.85; // Default was 0.7
-        if (quality === 'Qualité') temperature = 0.7; // More focused but stll human
-        if (quality === 'Amélioré') temperature = 1.0; // Max creativity for undetected
+        // Temperature adjustments for maximum human-like randomness without breaking cohesion
+        let temperature = 0.8;
+        if (quality === 'Qualité') temperature = 0.6;
+        if (quality === 'Amélioré') temperature = 0.95; // High entropy for anti-detection
 
 
         // --- EXECUTION ---

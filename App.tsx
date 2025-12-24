@@ -30,6 +30,7 @@ const App: React.FC = () => {
   const [quality, setQuality] = useState<HumanizeQuality>('Équilibre');
   const [mode, setMode] = useState<HumanizeMode>('Général');
   const [provider, setProvider] = useState<AIProvider>('Groq');
+  const [adminCode, setAdminCode] = useState<string | undefined>(undefined);
 
   const [state, setState] = useState<GenerationState>({
     isLoading: false,
@@ -92,7 +93,7 @@ const App: React.FC = () => {
 
     abortControllerRef.current = new AbortController();
     try {
-      const humanized = await humanizeText(inputText, settings);
+      const humanized = await humanizeText(inputText, settings, adminCode);
 
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       setState({ isLoading: false, progress: 100, error: null, result: humanized });
@@ -273,7 +274,9 @@ const App: React.FC = () => {
                             alert("Code incorrect.");
                             return;
                           }
+                          setAdminCode(code);
                         }
+                        if (p === 'Groq') setAdminCode(undefined);
                         setProvider(p as AIProvider);
                       }}
                       className={`px-8 py-3 text-xs font-black rounded-2xl transition-all uppercase flex items-center gap-2 ${provider === p ? (p === 'Gemini' ? 'bg-white shadow-md text-blue-700 border-blue-50' : 'bg-slate-900 shadow-md text-white border-slate-800') : 'text-slate-500 hover:text-slate-800'}`}
